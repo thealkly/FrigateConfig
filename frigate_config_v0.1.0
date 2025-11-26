@@ -1,0 +1,178 @@
+# Beispiel Config für das Youtube Video, wird aktualisiert von Alex Kly
+# Version 0.1.0
+# Bitte Username und Passwort bei MQTT anpassen
+# Bitte Username und Passwort bei den Kameras anpassen. in meinem Beispiel Username : frigate . Passwort: password
+# Diser kommt z.b. aus der Reolink Admin Einstellung
+
+mqtt:
+  host: 192.168.1.38 
+  #deine Home Assistant IP mit MQTT Broker
+  user: mqttfrigate
+  password: youtubetest
+
+go2rtc:
+  streams:
+    reolink_studio:
+      - rtsp://frigate:password@192.168.1.174:554/h264Preview_01_main
+    reolink_studio_sub:
+      - rtsp://frigate:password@192.168.1.174:554/h264Preview_01_sub
+#    reolink_garten:
+#      - rtsp://frigate:password@192.168.1.155:554/h264Preview_01_main
+#    reolink_garten_sub:
+#      - rtsp://frigate:password@192.168.1.155:554/h264Preview_01_sub
+
+detectors:
+  coral:
+    type: edgetpu
+    device: usb
+
+objects:
+  track:
+    - person
+    - dog
+    - cat
+    - bird
+    - car
+  filters:
+    person:
+
+      threshold: 0.75
+    dog:
+
+      threshold: 0.7
+      min_score: 0.7
+    cat:
+
+      threshold: 0.5
+      min_score: 0.5
+    bird:
+
+      threshold: 0.45
+      min_score: 0.6
+    car:
+      min_area: 3000
+      threshold: 0.7
+
+motion:
+  improve_contrast: true
+  lightning_threshold: 0.4
+  threshold: 20
+  contour_area: 20
+
+record:
+  enabled: true
+  retain:
+    days: 4
+    mode: all
+  alerts:
+    retain:
+      days: 14
+      mode: active_objects
+  detections:
+    retain:
+      days: 7
+      mode: active_objects
+
+snapshots:
+  enabled: true
+  bounding_box: true
+  crop: true
+  quality: 90
+  retain:
+    default: 30
+
+cameras:
+  trackmix_gartenPoE:
+    enabled: true
+    ffmpeg:
+      inputs:
+        - path: 
+            rtsp://frigate:password@192.168.1.55:554/h265Preview_01_main
+            # 26.10. geändert von h264 auf h265
+          roles:
+            - record
+        - path: 
+            rtsp://frigate:password@192.168.1.55:554/h264Preview_01_sub
+
+          roles:
+            - detect
+    detect:
+      width: 896
+      height: 512
+      fps: 4
+
+
+  trackmix_gartenPoE_ptz:
+    enabled: true
+    ffmpeg:
+      inputs:
+        - path: 
+            rtsp://frigate:password@192.168.1.55:554/h265Preview_02_main
+            # 26.10. geändert von h264 auf h265
+
+          roles:
+            - record
+
+ 
+
+
+  reolink_studio:
+    enabled: true
+    ffmpeg:
+      inputs:
+        - path: rtsp://127.0.0.1:8554/reolink_studio
+          input_args: preset-rtsp-restream
+          roles:
+            - record
+        - path: rtsp://127.0.0.1:8554/reolink_studio_sub
+          input_args: preset-rtsp-restream
+          roles:
+            - detect
+      retry_interval: 30
+    detect:
+      width: 640
+      height: 360
+      fps: 5
+    motion:
+      threshold: 20
+      contour_area: 10
+
+  reolink_garten:
+    enabled: true
+
+    ffmpeg:
+      inputs:
+        - path: rtsp://frigate:password@192.168.1.155:554/h264Preview_01_main
+          roles:
+            - record
+        - path: rtsp://frigate:password@192.168.1.155:554/h264Preview_01_sub
+          roles:
+            - detect
+    detect:
+      width: 1920
+      height: 576
+      fps: 4
+    motion:
+      threshold: 20
+      contour_area: 15
+
+detect:
+  enabled: true
+
+semantic_search:
+  enabled: true
+
+  model_size: small
+face_recognition:
+  enabled: true
+
+  model_size: small
+lpr:
+  enabled: true
+
+classification:
+  bird:
+    enabled: true
+    threshold: 0.7
+
+version: 0.16-0
